@@ -27,7 +27,7 @@ int main(int argc, char* argv[]) {
                 0, 0, 1;
   obsMtx << 1, 0, 0;
 
-  // Reasonable covariance matrices
+  //covariance matrices
   processNoiseCov << .05, .05, .0,
                      .05, .05, .0,
                      .0, .0, .0;
@@ -42,10 +42,10 @@ int main(int argc, char* argv[]) {
   cout << "obsNoiseCov: \n" << obsNoiseCov << endl;
   cout << "estimatErrCov: \n" << estimatErrCov << endl;
 
-  // Construct the filter
+  //filter construction
   KalmanFilter kf(dt, processMtx, obsMtx, processNoiseCov, obsNoiseCov, estimatErrCov);
 
-  // List of noisy position obss (y)
+  // one dimensional observations obss (obsEigenVect)
   vector<double> obss = {
       1.04202710058, 1.10726790452, 1.2913511148, 1.48485250951, 1.72825901034,
       1.74216489744, 2.11672039768, 2.14529225112, 2.16029641405, 2.21269371128,
@@ -66,14 +66,14 @@ int main(int argc, char* argv[]) {
 
   // Feed obss into filter, output estimated states
 
-  Eigen::VectorXd y(obsDim);
+  Eigen::VectorXd obsEigenVect(obsDim);
   cout << "t = " << t << ", " << "x_hat[0]: " << kf.state().transpose() << endl;
-  for(int i = 0; i < obss.size(); i++) {
+  for(int obsCounter = 0; obsCounter < obss.size(); obsCounter++) {
     t += dt;
-    y << obss[i];
-    kf.update(y);
-    cout << "t = " << t << ", " << "obss[" << i << "] = " << y.transpose()
-        << ", x_hat[" << i << "] = " << kf.state().transpose() << endl;
+    obsEigenVect << obss[obsCounter];
+    kf.update(obsEigenVect);
+    cout << "t = " << t << ", " << "obss[" << obsCounter << "] = " << obsEigenVect.transpose()
+         << ", x_hat[" << obsCounter << "] = " << kf.state().transpose() << endl;
   }
 
   return 0;
