@@ -10,7 +10,7 @@ int main(int argc, char *argv[]) {
     int stateDim = 3; // Number of states
     int obsDim = 1; // Number of obss
 
-    double dt = 1.0 / 30; // Time step
+    double timeDiff = 1.0 / 30; // Time step
 
     /*
      * Defining the matrices
@@ -22,19 +22,20 @@ int main(int argc, char *argv[]) {
     Eigen::MatrixXd estimatErrCov(stateDim, stateDim); // Estimate error covariance
 
     // Discrete LTI projectile motion, measuring position only
-    processMtx << 1, dt, 0,
-            0, 1, dt,
-            0, 0, 1;
+    processMtx << 1, timeDiff, 0,
+                  0, 1, timeDiff,
+                  0, 0,        1;
+
     obsMtx << 1, 0, 0;
 
     //covariance matrices
     processNoiseCov << .05, .05, .0,
-            .05, .05, .0,
-            .0, .0, .0;
+                       .05, .05, .0,
+                       .0 ,  .0, .0;
     obsNoiseCov << 5;
-    estimatErrCov << .1, .1, .1,
-            .1, 10000, 10,
-            .1, 10, 100;
+    estimatErrCov << .1, .1,    .1,
+                     .1, 10000, 10,
+                     .1, 10,    100;
 
     cout << "processMtx: \n" << processMtx << endl;
     cout << "obsMtx: \n" << obsMtx << endl;
@@ -43,7 +44,7 @@ int main(int argc, char *argv[]) {
     cout << "estimatErrCov: \n" << estimatErrCov << endl;
 
     //filter construction
-    KalmanFilter kf(dt, processMtx, obsMtx, processNoiseCov, obsNoiseCov, estimatErrCov);
+    KalmanFilter kf(timeDiff, processMtx, obsMtx, processNoiseCov, obsNoiseCov, estimatErrCov);
 
     // one dimensional observations obss (obsEigenVect)
     vector<double> obss = {
@@ -59,21 +60,21 @@ int main(int argc, char *argv[]) {
     };
 
     // Best guess of initial states
-    Eigen::VectorXd x0(stateDim);
-    double time = 0;
-    x0 << obss[0], 0, -9.81;
-    kf.init(time, x0);
+    Eigen::VectorXd initState(stateDim);
+    double curTime = 0;
+    initState << obss[0], 0, -9.81;
+    kf.init(curTime, initState);
 
     // Feed obss into filter, output estimated states
 
     Eigen::VectorXd obsEigenVect(obsDim);
-    cout << "time = " << time << ", " << "x_hat[0]: " << kf.state().transpose() << endl;
+    cout << "getCurTime = " << curTime << ", " << "estimatedState[0]: " << kf.getEstimatedState().transpose() << endl;
     for (int obsCounter = 0; obsCounter < obss.size(); obsCounter++) {
-        time += dt;
+        curTime += timeDiff;
         obsEigenVect << obss[obsCounter];
         kf.update(obsEigenVect);
-        cout << "time = " << time << ", " << "obss[" << obsCounter << "] = " << obsEigenVect.transpose()
-             << ", x_hat[" << obsCounter << "] = " << kf.state().transpose() << endl;
+        cout << "getCurTime = " << curTime << ", " << "obss[" << obsCounter << "] = " << obsEigenVect.transpose()
+             << ", estimatedState[" << obsCounter << "] = " << kf.getEstimatedState().transpose() << endl;
     }
 
     return 0;

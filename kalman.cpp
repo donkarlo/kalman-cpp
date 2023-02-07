@@ -12,48 +12,48 @@ KalmanFilter::KalmanFilter(
         const Eigen::MatrixXd estimatErrCov)
 //initializing the values - constructing member variables
         : processMtx(processMatrix), obsMtx(obsMtx), processNoiseCov(processNoiseCov), obsNoiseCov(obsNoiseCov),
-          initEstimatedErrCov(estimatErrCov), stateDim(obsMtx.rows()), obsDim(processMatrix.rows()), dt(dt),
-          initialized(false), identityMtx(obsDim, obsDim), x_hat(obsDim), x_hat_new(obsDim) {
+          initEstimatedErrCov(estimatErrCov), stateDim(obsMtx.rows()), obsDim(processMatrix.rows()), timeDiff(dt),
+          initialized(false), identityMtx(obsDim, obsDim), estimatedState(obsDim), newEstimatedState(obsDim) {
     identityMtx.setIdentity();
 }
 
 KalmanFilter::KalmanFilter() {}
 
-void KalmanFilter::init(double t0, const Eigen::VectorXd &x0) {
-    x_hat = x0;
+void KalmanFilter::init(double initTime, const Eigen::VectorXd initState) {
+    estimatedState = initState;
     estimatErrCov = initEstimatedErrCov;
-    this->t0 = t0;
-    t = t0;
+    this->initTime = initTime;
+    curTime = initTime;
     initialized = true;
 }
 
 void KalmanFilter::init() {
-    x_hat.setZero();
+    estimatedState.setZero();
     estimatErrCov = initEstimatedErrCov;
-    t0 = 0;
-    t = t0;
+    initTime = 0;
+    curTime = initTime;
     initialized = true;
 }
 
-void KalmanFilter::update(const Eigen::VectorXd &obs) {
+void KalmanFilter::update(const Eigen::VectorXd obs) {
 
     if (!initialized)
         throw std::runtime_error("Filter is not initialized!");
 
-    x_hat_new = processMtx * x_hat;
+    newEstimatedState = processMtx * estimatedState;
     estimatErrCov = processMtx * estimatErrCov * processMtx.transpose() + processNoiseCov;
     kalmanGain =
             estimatErrCov * obsMtx.transpose() * (obsMtx * estimatErrCov * obsMtx.transpose() + obsNoiseCov).inverse();
-    x_hat_new += kalmanGain * (obs - obsMtx * x_hat_new);
+    newEstimatedState += kalmanGain * (obs - obsMtx * newEstimatedState);
     estimatErrCov = (identityMtx - kalmanGain * obsMtx) * estimatErrCov;
-    x_hat = x_hat_new;
+    estimatedState = newEstimatedState;
 
-    t += dt;
+    curTime += timeDiff;
 }
 
-void KalmanFilter::update(const Eigen::VectorXd &obs, double dt, const Eigen::MatrixXd processMtx) {
+void KalmanFilter::update(const Eigen::VectorXd obs, double timeDiff, const Eigen::MatrixXd processMtx) {
 
     this->processMtx = processMtx;
-    this->dt = dt;
+    this->timeDiff = timeDiff;
     update(obs);
 }

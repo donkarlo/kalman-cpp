@@ -36,26 +36,26 @@ public:
     /**
     * Initialize the filter with a guess for initial states.
     */
-    void init(double t0, const Eigen::VectorXd &x0);
+    void init(double initTime, const Eigen::VectorXd initState);
 
     /**
-    * Update the estimated state based on measured values. The
-    * time step is assumed to remain constant.
+    * Update the estimated getEstimatedState based on measured values. The
+    * getCurTime step is assumed to remain constant.
     */
-    void update(const Eigen::VectorXd &obs);
+    void update(const Eigen::VectorXd obs);
 
     /**
-    * Update the estimated state based on measured values,
-    * using the given time step and dynamics matrix.
+    * Update the estimated getEstimatedState based on measured values,
+    * using the given getCurTime step and dynamics matrix.
     */
-    void update(const Eigen::VectorXd &obs, double dt, const Eigen::MatrixXd processMtx);
+    void update(const Eigen::VectorXd obs, double timeDiff, const Eigen::MatrixXd processMtx);
 
     /**
-    * Return the current state and time.
+    * Return the current getEstimatedState and getCurTime.
     */
-    Eigen::VectorXd state() { return x_hat; };
+    Eigen::VectorXd getEstimatedState() { return estimatedState; };
 
-    double time() { return t; };
+    double getCurTime() { return curTime; };
 
 private:
 
@@ -65,11 +65,11 @@ private:
     // System dimensions
     int stateDim, obsDim;
 
-    // Initial and current time
-    double t0, t;
+    // Initial and current getCurTime
+    double initTime, curTime;
 
-    // Discrete time step
-    double dt;
+    // Discrete getCurTime step
+    double timeDiff;
 
     // Is the filter initialized?
     bool initialized;
@@ -78,6 +78,6 @@ private:
     Eigen::MatrixXd identityMtx;
 
     // Estimated states
-    Eigen::VectorXd x_hat, x_hat_new;
+    Eigen::VectorXd estimatedState, newEstimatedState;
 
 };
