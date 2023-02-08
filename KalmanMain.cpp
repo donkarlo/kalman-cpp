@@ -1,7 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <Eigen/Dense>
-#include "kalman.hpp"
+#include "KalmanFilter.hpp"
 
 using namespace std;
 
@@ -37,11 +37,7 @@ int main(int argc, char *argv[]) {
                        .1, 10000, 10,
                        .1, 10,    100;
 
-    cout << "Process Matrix: \n" << processMtx << endl;
-    cout << "Observation Matrix: \n" << obsMtx << endl;
-    cout << "Process noise covariance: \n" << processNoiseCov << endl;
-    cout << "Observation noise covariance: \n" << obsNoiseCov << endl;
-    cout << "Estimated error covariance: \n" << estimatedErrCov << endl;
+
 
     //filter construction
     KalmanFilter kf(timeDiff
@@ -51,7 +47,7 @@ int main(int argc, char *argv[]) {
                     , obsNoiseCov
                     , estimatedErrCov);
 
-    // one dimensional observations obss (obsEigenVect)
+    // one dimensional observations obss (obsEigenVect) @todo change to vectors - this just for demontration
     vector<double> obss = {
             1.04202710058, 1.10726790452, 1.2913511148, 1.48485250951, 1.72825901034,
             1.74216489744, 2.11672039768, 2.14529225112, 2.16029641405, 2.21269371128,
@@ -68,28 +64,19 @@ int main(int argc, char *argv[]) {
     Eigen::VectorXd initState(stateDim);
     double curTime = 0;
     initState << obss[0], 0, -9.81;
+    //overloaded method init - either with an initial guess or set it to yero
     kf.init(curTime, initState);
     // kf.init();
-    // Feed obss into filter, output estimated states
 
     Eigen::VectorXd obsEigenVect(obsDim);
-    cout << "getCurTime = " << curTime << ", " << "estimatedState[0]: " << kf.getEstimatedState().transpose() << endl;
+    kf.report();
     for (int obsCounter = 0; obsCounter < obss.size(); obsCounter++) {
         curTime += timeDiff;
         obsEigenVect << obss[obsCounter];
         kf.update(obsEigenVect);
-        cout << "current time = " << curTime << ", " << "observation: " << obsCounter << " = " << obsEigenVect.transpose()
-             << ", estimatedState[" << obsCounter << "] = " << kf.getEstimatedState().transpose() << endl;
-        cout << "estimated error cov determinant: "<<kf.getEstimatedErrCov().determinant()<<endl;
     }
 
     return 0;
 }
 
-class Run {
 
-};
-
-class Report{
-
-};

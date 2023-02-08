@@ -1,8 +1,9 @@
 #include <Eigen/Dense>
+#include "Reportable.hpp"
 
 #pragma once
 
-class KalmanFilter {
+class KalmanFilter:public Reportable{
 
 public:
 
@@ -58,8 +59,9 @@ public:
      */
     Eigen::MatrixXd getEstimatedErrCov(){ return estimatedErrCov; };
 
-private:
+    void report();
 
+private:
     // Matrices for computation
     Eigen::MatrixXd  processMtx
                     ,estimatedErrCov
@@ -70,12 +72,17 @@ private:
                         ,processNoiseCov
                         ;
 
+    //Count of received observations so far
+    int obsCounter = 0;
+
     // System dimensions
     int stateDim, obsDim;
 
-    // Initial and current getCurTime
-    double initTime
-         , curTime;
+    // Start time
+    double initTime;
+
+    //current getCurTime
+    double curTime;
 
     // Discrete getCurTime step
     double timeDiff;
@@ -90,4 +97,5 @@ private:
     Eigen::VectorXd estimatedState
                     ,newEstimatedState;
 
+    void reportAfterUpdate(const Eigen::VectorXd obs);
 };

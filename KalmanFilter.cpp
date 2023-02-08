@@ -1,7 +1,8 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "kalman.hpp"
+#include "KalmanFilter.hpp"
+using namespace std;
 
 KalmanFilter::KalmanFilter(
         double dt,
@@ -46,10 +47,27 @@ void KalmanFilter::update(const Eigen::VectorXd obs) {
     estimatedState = newEstimatedState;
 
     curTime += timeDiff;
+    obsCounter ++;
+    reportAfterUpdate(obs);
 }
 
 void KalmanFilter::update(const Eigen::VectorXd obs, double timeDiff, const Eigen::MatrixXd processMtx) {
     this->processMtx = processMtx;
     this->timeDiff = timeDiff;
     update(obs);
+}
+
+void KalmanFilter::report() {
+    cout << "Process Matrix: \n" << processMtx << endl;
+    cout << "Observation Matrix: \n" << obsMtx << endl;
+    cout << "Process noise covariance: \n" << processNoiseCov << endl;
+    cout << "Observation noise covariance: \n" << obsNoiseCov << endl;
+    cout << "Estimated error covariance: \n" << estimatedErrCov << endl;
+    cout << "current time = " << curTime << ", " << "estimatedState[0]: " << estimatedState.transpose() << endl;
+}
+
+void KalmanFilter::reportAfterUpdate(const Eigen::VectorXd obs) {
+    cout << "current time = " << curTime << ", " << "observation: " << obsCounter << " = " << obs.transpose()
+         << ", estimatedState[" << obsCounter << "] = " << getEstimatedState().transpose() << endl;
+    cout << "estimated error cov determinant: "<<getEstimatedErrCov().determinant()<<endl;
 }
