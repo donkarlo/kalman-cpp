@@ -61,6 +61,10 @@ public:
 
     void report();
 
+    ~KalmanFilter( )  {
+
+    }
+
 private:
     // Matrices for computation
     Eigen::MatrixXd  processMtx
@@ -99,3 +103,5 @@ private:
 
     void reportAfterUpdate(const Eigen::VectorXd obs);
 };
+
+
