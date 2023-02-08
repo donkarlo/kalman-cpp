@@ -18,8 +18,8 @@ int main(int argc, char *argv[]) {
     Eigen::MatrixXd processMtx(stateDim, stateDim); // System dynamics matrix
     Eigen::MatrixXd obsMtx(obsDim, stateDim); // Output matrix
     Eigen::MatrixXd processNoiseCov(stateDim, stateDim); // Process noise covariance
-    Eigen::MatrixXd obsNoiseCov(obsDim, obsDim); // Measurement noise covariance
-    Eigen::MatrixXd estimatErrCov(stateDim, stateDim); // Estimate error covariance
+    Eigen::MatrixXd obsNoiseCov(obsDim, obsDim); // observation noise covariance
+    Eigen::MatrixXd estimatedErrCov(stateDim, stateDim); // Estimate error covariance
 
     // Discrete LTI projectile motion, measuring position only
     processMtx << 1, timeDiff, 0,
@@ -33,18 +33,23 @@ int main(int argc, char *argv[]) {
                        .05, .05, .0,
                        .0 ,  .0, .0;
     obsNoiseCov << 5;
-    estimatErrCov << .1, .1,    .1,
-                     .1, 10000, 10,
-                     .1, 10,    100;
+    estimatedErrCov << .1, .1,    .1,
+                       .1, 10000, 10,
+                       .1, 10,    100;
 
-    cout << "processMtx: \n" << processMtx << endl;
-    cout << "obsMtx: \n" << obsMtx << endl;
-    cout << "processNoiseCov: \n" << processNoiseCov << endl;
-    cout << "obsNoiseCov: \n" << obsNoiseCov << endl;
-    cout << "estimatErrCov: \n" << estimatErrCov << endl;
+    cout << "Process Matrix: \n" << processMtx << endl;
+    cout << "Observation Matrix: \n" << obsMtx << endl;
+    cout << "Process noise covariance: \n" << processNoiseCov << endl;
+    cout << "Observation noise covariance: \n" << obsNoiseCov << endl;
+    cout << "Estimated error covariance: \n" << estimatedErrCov << endl;
 
     //filter construction
-    KalmanFilter kf(timeDiff, processMtx, obsMtx, processNoiseCov, obsNoiseCov, estimatErrCov);
+    KalmanFilter kf(timeDiff
+                    , processMtx
+                    , obsMtx
+                    , processNoiseCov
+                    , obsNoiseCov
+                    , estimatedErrCov);
 
     // one dimensional observations obss (obsEigenVect)
     vector<double> obss = {
@@ -64,7 +69,7 @@ int main(int argc, char *argv[]) {
     double curTime = 0;
     initState << obss[0], 0, -9.81;
     kf.init(curTime, initState);
-
+    // kf.init();
     // Feed obss into filter, output estimated states
 
     Eigen::VectorXd obsEigenVect(obsDim);
@@ -73,9 +78,18 @@ int main(int argc, char *argv[]) {
         curTime += timeDiff;
         obsEigenVect << obss[obsCounter];
         kf.update(obsEigenVect);
-        cout << "getCurTime = " << curTime << ", " << "obss[" << obsCounter << "] = " << obsEigenVect.transpose()
+        cout << "current time = " << curTime << ", " << "observation: " << obsCounter << " = " << obsEigenVect.transpose()
              << ", estimatedState[" << obsCounter << "] = " << kf.getEstimatedState().transpose() << endl;
+        cout << "estimated error cov determinant: "<<kf.getEstimatedErrCov().determinant()<<endl;
     }
 
     return 0;
 }
+
+class Run {
+
+};
+
+class Report{
+
+};

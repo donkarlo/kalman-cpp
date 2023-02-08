@@ -12,21 +12,16 @@ public:
     *   obsMtx - observation matrix
     *   processNoiseCov - Process noise covariance
     *   obsNoiseCov - Measurement noise covariance
-    *   estimatErrCov - Estimate error covariance
+    *   estimatedErrCov - Estimate error covariance
     */
     KalmanFilter(
-            double dt,
-            const Eigen::MatrixXd processMatrix,
+            double dt, // can be changede in this->update(.,.,.)
+            Eigen::MatrixXd processMatrix, //can be changed in this->update(.,.,.)
             const Eigen::MatrixXd obsMtx,
             const Eigen::MatrixXd processNoiseCov,
             const Eigen::MatrixXd obsNoiseCov,
-            const Eigen::MatrixXd estimatErrCov
+            const Eigen::MatrixXd estimatedErrCov
     );
-
-    /**
-    * Create a blank estimator.
-    */
-    KalmanFilter();
 
     /**
     * Initialize the filter with initial states as zero.
@@ -39,34 +34,48 @@ public:
     void init(double initTime, const Eigen::VectorXd initState);
 
     /**
-    * Update the estimated getEstimatedState based on measured values. The
-    * getCurTime step is assumed to remain constant.
+    * update when timeDiff and processMtx are not changing
     */
     void update(const Eigen::VectorXd obs);
 
     /**
-    * Update the estimated getEstimatedState based on measured values,
-    * using the given getCurTime step and dynamics matrix.
+    * Update when timeDiff and processMtx vary over time
     */
     void update(const Eigen::VectorXd obs, double timeDiff, const Eigen::MatrixXd processMtx);
 
     /**
-    * Return the current getEstimatedState and getCurTime.
+    * Return the current getEstimatedState.
     */
     Eigen::VectorXd getEstimatedState() { return estimatedState; };
 
+    /**
+     * @return current time
+     */
     double getCurTime() { return curTime; };
+
+    /**
+     * @return current estimated time
+     */
+    Eigen::MatrixXd getEstimatedErrCov(){ return estimatedErrCov; };
 
 private:
 
     // Matrices for computation
-    Eigen::MatrixXd processMtx, obsMtx, processNoiseCov, obsNoiseCov, estimatErrCov, kalmanGain, initEstimatedErrCov;
+    Eigen::MatrixXd  processMtx
+                    ,estimatedErrCov
+                    ,kalmanGain;
+    const Eigen::MatrixXd obsMtx
+                        ,initEstimatedErrCov
+                        ,obsNoiseCov
+                        ,processNoiseCov
+                        ;
 
     // System dimensions
     int stateDim, obsDim;
 
     // Initial and current getCurTime
-    double initTime, curTime;
+    double initTime
+         , curTime;
 
     // Discrete getCurTime step
     double timeDiff;
@@ -78,6 +87,7 @@ private:
     Eigen::MatrixXd identityMtx;
 
     // Estimated states
-    Eigen::VectorXd estimatedState, newEstimatedState;
+    Eigen::VectorXd estimatedState
+                    ,newEstimatedState;
 
 };
